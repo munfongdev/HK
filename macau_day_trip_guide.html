@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>香港・澳门一日游｜交通攻略＋景点照片 Hover 地图</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root{--blue:#185FA5;--amber:#BA7517;--green:#3B6D11;--magenta:#993556;--purple:#534AB7;--coral:#D85A30;--brown:#6B4F2A;--ink:#252525;--muted:#666;--bg:#f6f6f3;}
+  html,body{margin:0;padding:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"PingFang HK","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--ink)}
+  #map{width:100%;height:100vh}
+  .leaflet-control-zoom{margin-right:12px!important}
+  .legend{background:#fff;padding:12px 14px;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.20);font-size:12px;line-height:1.75;color:#2c2c2a;max-width:240px;}
+  .legend h4{margin:0 0 6px;font-size:14px;font-weight:800}.legend .row{display:flex;align-items:center;gap:7px;margin-bottom:3px}
+  .swatch{width:21px;height:0;border-top-width:4px;border-top-style:solid;flex-shrink:0}.dot{width:10px;height:10px;border-radius:50%;border:1px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.3);flex-shrink:0}
+  .num-badge{background:var(--blue);color:#fff;border-radius:50%;width:27px;height:27px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45)}
+  .hotel-badge{background:var(--brown);color:#fff;border-radius:50%;width:27px;height:27px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45)}
+  .food-badge{background:var(--coral);color:#fff;border-radius:50%;width:25px;height:25px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+  .photo-tooltip{background:#fff;border:none;border-radius:12px;padding:0;box-shadow:0 7px 25px rgba(0,0,0,.24);overflow:hidden;min-width:220px;max-width:330px}.photo-tooltip:before{display:none!important}
+  .photo-tooltip .tt-body{padding:8px 10px 10px;font-size:12px;line-height:1.5}.photo-tooltip .tt-title{font-size:14px;font-weight:800;margin-bottom:2px}.photo-tooltip img{display:block;width:100%;height:132px;object-fit:cover;background:#eee}
+  .photo-tooltip .tt-note{color:#666}.photo-tooltip .tt-tag{display:inline-block;font-size:10px;padding:2px 6px;border-radius:9px;background:#f0f2f4;color:#444;margin-top:5px}
+  .leaflet-popup-content{font-size:13px;line-height:1.6;min-width:230px;max-width:340px}.leaflet-popup-content .popup-img{width:100%;height:170px;object-fit:cover;border-radius:9px;margin-bottom:8px}.popup-title{font-size:15px;font-weight:800}.popup-tip{color:#555;font-size:12px}.tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:9px;color:#fff;margin-top:5px}
+  .top-tip{position:absolute;left:12px;top:12px;z-index:900;background:rgba(255,255,255,.96);padding:12px 14px;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.18);max-width:360px;font-size:12px;line-height:1.6}.top-tip strong{font-size:16px}
+  #guide{position:absolute;right:12px;top:12px;bottom:12px;width:360px;z-index:1000;overflow:auto;background:rgba(255,255,255,.97);border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.22);padding:16px 16px 22px;box-sizing:border-box}
+  #guide h1{font-size:20px;line-height:1.25;margin:0 0 4px}.subtitle{font-size:12px;color:#666;margin-bottom:14px}.section{margin-top:15px;border-top:1px solid #eee;padding-top:13px}.section h2{font-size:15px;margin:0 0 8px}.route-chip{display:inline-block;background:#eef5fb;color:#185FA5;border-radius:10px;padding:4px 8px;margin:3px 3px 3px 0;font-size:11px}
+  .step{display:grid;grid-template-columns:38px 1fr;gap:9px;padding:9px 0;border-bottom:1px solid #f0f0f0}.step:last-child{border-bottom:none}.step-no{width:30px;height:30px;border-radius:50%;background:#1d4e89;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:12px}.step h3{font-size:13px;margin:0 0 4px}.step p{font-size:11px;line-height:1.55;margin:0;color:#555}.step img{width:100%;height:105px;object-fit:cover;border-radius:9px;margin-top:7px;border:1px solid #eee}
+  .warn{background:#fff7df;border:1px solid #f4d992;border-radius:10px;padding:9px 10px;font-size:11px;line-height:1.6;margin-top:8px}.ok{background:#edf8ef;border:1px solid #cde8d2;border-radius:10px;padding:9px 10px;font-size:11px;line-height:1.6;margin-top:8px}
+  .source{font-size:10px;color:#777;line-height:1.5;margin-top:12px}.source a{color:#666;text-decoration:none}.source a:hover{text-decoration:underline}
+  .food-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}.food-card{border:1px solid #eee;border-radius:11px;overflow:hidden;background:#fff}.food-card img{width:100%;height:88px;object-fit:cover}.food-card .fc{padding:7px 8px}.food-card b{font-size:11px}.food-card p{font-size:10px;color:#666;line-height:1.4;margin:3px 0 0}
+  #guideBtn{display:none;position:absolute;right:12px;top:12px;z-index:1100;border:0;background:#fff;border-radius:10px;padding:9px 12px;box-shadow:0 2px 12px rgba(0,0,0,.18);font-weight:800}
+  @media(max-width:980px){#guide{width:330px}.top-tip{max-width:320px}.photo-tooltip{max-width:285px}}
+  @media(max-width:700px){#guideBtn{display:block}.top-tip{left:10px;right:66px;max-width:none}.legend{display:none}#guide{display:none;right:10px;left:10px;width:auto;top:58px;bottom:10px}.food-list{grid-template-columns:1fr 1fr}.leaflet-popup-content{min-width:220px}.photo-tooltip{display:none}}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="top-tip"><strong>🇲🇴 第一次澳门一日游</strong><br>主线：香港酒店 → 上环港澳码头 → <b>氹仔进</b> → 威尼斯人 / 巴黎人 → 官也街 → 大三巴 → 议事亭前地 → 新马路 → 外港返港。<br>桌面版把鼠标移到景点点位，可先看照片；点击点位可看更完整攻略。手机上直接点点位。</div>
+<button id="guideBtn">📖 交通攻略</button>
+<aside id="guide">
+  <h1>澳门一日游｜交通＋上手攻略</h1>
+  <div class="subtitle">按你们住在 WAKE Concept Hotel、第一次澳门来规划</div>
+
+  <div class="section">
+    <h2>⭐ 推荐顺序</h2>
+    <span class="route-chip">香港油麻地</span><span>→</span>
+    <span class="route-chip">上环</span><span>→</span>
+    <span class="route-chip">氹仔</span><span>→</span>
+    <span class="route-chip">路氹</span><span>→</span>
+    <span class="route-chip">官也街</span><span>→</span>
+    <span class="route-chip">大三巴</span><span>→</span>
+    <span class="route-chip">议事亭前地</span><span>→</span>
+    <span class="route-chip">外港</span>
+    <div class="ok">这一版故意不塞妈阁庙、渔人码头等额外景点，让第一次去澳门可以慢慢玩，不要为了打卡一直赶路。</div>
+  </div>
+
+  <div class="section">
+    <h2>🚇 1｜酒店 → 上环港澳码头</h2>
+    <div class="step"><div class="step-no">1</div><div><h3>走到油麻地站</h3><p>WAKE Concept Hotel 官方说酒店就在油麻地 MTR 站 Exit C 附近；如果带行李并需要升降机，酒店特别提醒看 B/C 之间的升降机出口。</p><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Yau_Ma_Tei_Station_Exit_A2_2024_08_part2.jpg/1280px-Yau_Ma_Tei_Station_Exit_A2_2024_08_part2.jpg" alt="油麻地站出口示意"></div></div>
+    <div class="step"><div class="step-no">2</div><div><h3>搭港铁去上环</h3><p>简单理解：油麻地搭荃湾线往港岛方向，去中环转港岛线，再去上环；到上环后跟着 <b>Shun Tak Centre / Macau Ferry</b> 指示走。上环站 Exit D 连接信德中心。</p><div class="route-chip">油麻地 → 中环 → 上环</div></div></div>
+    <div class="step"><div class="step-no">3</div><div><h3>到 3/F 买/取船票</h3><p>香港港澳客运码头在信德中心；TurboJET 官方列出的售票柜台、自助售票机和出发区域都在 3/F。建议至少提前 30 分钟到登船口。</p><img src="https://blog.kakaocdn.net/dna/bQqPqv/btsFjJjfmHW/AAAAAAAAAAAAAAAAAAAAANu5oIU1GdigmYOvFuwtw_r6OuHMABK0Luu94lpXffla/img.webp?allow_ip=&allow_referer=&credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1777561199&signature=WSb68C1eHsm%2FcJrVz6jBeejN3L0%3D" alt="信德中心港澳码头外观"></div></div>
+    <div class="warn">⚠️ 目前（2026-06 起）上环 → 氹仔的 TurboJET 船班比上环 → 外港少。出发日期确定后，先确认氹仔去程班次，再倒推你们从酒店的出发时间。</div>
+  </div>
+
+  <div class="section">
+    <h2>🚢 2｜上环 → 氹仔码头</h2>
+    <div class="step"><div class="step-no">4</div><div><h3>选择「Taipa / 氹仔」</h3><p>不要误买成 Macau Outer Harbour / 外港。TurboJET 目前公布的上环 → 氹仔日间班次为 10:30、11:30、12:30*、13:30、15:00；*为可选班次，周末/假期可能另有安排。</p></div></div>
+    <div class="step"><div class="step-no">5</div><div><h3>船程约 60 分钟</h3><p>带护照/旅行证件和船票；官方建议至少提前 30 分钟登船前到场办理文件检查。</p></div></div>
+    <div class="step"><div class="step-no">6</div><div><h3>抵达氹仔后怎么走</h3><p>码头外有巴士、的士，也可以找到酒店 / 博彩场所的免费接驳巴士。第一次去、又不想研究巴士线路时，<b>优先找威尼斯人 / 路氹方向的免费发财车或直接搭短程的士</b>。</p><img src="https://upload.wikimedia.org/wikipedia/commons/1/19/MC_%E6%BE%B3%E9%96%80_Macau_%E9%87%91%E5%85%89%E9%A3%9B%E8%88%AA_Cotai_Jet_Pier_%E6%B0%B9%E4%BB%94%E5%AE%A2%E9%81%8B%E7%A2%BC%E9%A0%AD_Taipa_Ferry_Terminal_shuttle_bus_station_%E5%8C%97%E5%AE%89%E5%A4%A7%E9%A6%AC%E8%B7%AF_Pac_On_Road_November_2019_SS2_07.jpg" alt="氹仔码头接驳巴士"></div></div>
+  </div>
+
+  <div class="section">
+    <h2>🚌 3｜澳门市内交通怎么选</h2>
+    <div class="step"><div class="step-no">A</div><div><h3>免费发财车｜最省脑</h3><p>主要酒店 / 博彩场所之间很方便。适合码头 → 路氹、以及部分市区 → 码头的短接驳。注意：不是所有酒店、所有时段都有完全一样的路线，现场看目的地牌。</p></div></div>
+    <div class="step"><div class="step-no">B</div><div><h3>巴士｜最便宜</h3><p>澳门旅游局目前资料显示，公共巴士成人票价为 <b>MOP 6</b>，车上不找零；半岛、氹仔、路环之间都有线路。第一次去如果不熟悉路线，可以把巴士当备选。</p><img src="https://www.cestee.com/images/30/89/153089-2560.jpeg" alt="澳门巴士站"></div></div>
+    <div class="step"><div class="step-no">C</div><div><h3>的士｜最省体力</h3><p>适合「官也街 → 大三巴」这类跨区移动。澳门旅游局目前公布的士起步价为 MOP 21（首 1,600 米），之后按里程/候车时间计费；从氹仔往澳门半岛不收额外离岛附加费。</p></div></div>
+    <div class="step"><div class="step-no">D</div><div><h3>步行｜老城区最值得</h3><p>大三巴 → 议事亭前地 → 新马路这段建议直接走。不要为了省 5–10 分钟而一直上车。</p></div></div>
+  </div>
+
+  <div class="section">
+    <h2>🚢 4｜澳门 → 香港回程</h2>
+    <div class="step"><div class="step-no">7</div><div><h3>从外港回香港</h3><p>你们这版的逻辑是「氹仔进、外港出」。游完老城区后前往澳门外港客运码头。可以搭酒店发财车（看当日路线）或的士；怕错过船，建议至少提前 45–60 分钟到码头附近。</p><img src="https://images.mindtrip.ai/attractions/371a/4d3e/b31d/3a9a/8a6b/c614/a57a/5e97" alt="澳门外港客运码头"></div></div>
+    <div class="step"><div class="step-no">8</div><div><h3>外港 → 上环</h3><p>外港到上环的船班密度通常比氹仔路线高；所以回程放外港更容易留弹性。具体班次还是以你们当天船公司页面为准。</p></div></div>
+  </div>
+
+  <div class="section">
+    <h2>🍴 5｜吃东西：先当「候选」</h2>
+    <div class="food-list">
+      <div class="food-card"><img src="https://3.bp.blogspot.com/_svVm7Mia0uk/TA1wauQpyLI/AAAAAAAAKjI/NIMZvpAAoMY/s1600/DSC_0320.JPG"><div class="fc"><b>官也街 / 氹仔旧城区</b><p>猪扒包、肉乾、花生糖等，适合边走边吃。</p></div></div>
+      <div class="food-card"><img src="https://img.bigfang.tw/2017/09/1504397360-bac7161f6e5faef154a3b7d156f6738d.jpg"><div class="fc"><b>玛嘉烈蛋挞</b><p>放在老城区下午茶，不需要一次吃很多。</p></div></div>
+      <div class="food-card"><img src="https://img.bigfang.tw/2017/09/1504388113-22d71165329c83e617a059ba88936142.jpg"><div class="fc"><b>义顺牛奶公司</b><p>双皮奶 / 姜汁撞奶，顺路即可吃。</p></div></div>
+      <div class="food-card"><img src="https://ak-d.tripcdn.com/images/1mi342224w8y3i3te70AB_R_600_400_R5_Q90.png?proc=source%2Ftrip"><div class="fc"><b>氹仔小巷</b><p>可现场看人潮和小红书，再决定哪家。</p></div></div>
+    </div>
+    <div class="ok">🍴 不建议为了攻略把每一间都吃完。两个人分着吃最适合：猪扒包 1 份、蛋挞 1–2 个、双皮奶 1–2 碗，再留胃口给临时发现的店。</div>
+  </div>
+
+  <div class="section">
+    <h2>📸 地图怎么用</h2>
+    <p style="font-size:11px;line-height:1.6;color:#555;margin:0">桌面：鼠标移到点位 → 出现照片＋重点提示；点击 → 打开完整说明。手机：直接点点位。路线颜色：蓝＝渡轮、橙＝免费接驳、绿＝步行、洋红＝港铁/巴士/的士。</p>
+  </div>
+
+  <div class="source">
+    交通资料核对：TurboJET 官方航班与码头资料；澳门旅游局市内交通资料；Wake Concept Hotel 官方酒店/邻里资料。班次、临时接驳、路况和营业时间可能变动，出发日前再确认。<br>
+    图片为公开网页图片链接，仅用于路线示意；具体版权归原作者 / 原网站。<br>
+    主要参考：<a href="https://www2.turbojet.com.hk/travel-with-us-sea-ferry/" target="_blank">TurboJET</a> ｜ <a href="https://www.macaotourism.gov.mo/zh-hans/article/before-you-travel/local-transportation" target="_blank">澳门旅游局</a> ｜ <a href="https://www.wakehotel.com/en/neighbourhood" target="_blank">WAKE Concept Hotel</a>
+  </div>
+</aside>
+
+<script>
+const map=L.map('map',{zoomControl:true}).setView([22.18,113.56],12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+const C={ferry:'#185FA5',shuttle:'#BA7517',walk:'#3B6D11',paid:'#993556',attraction:'#534AB7',food:'#D85A30',hotel:'#6B4F2A'};
+
+const stops=[
+ {n:0,name:'WAKE Concept Hotel（香港）',lat:22.3132,lng:114.1694,type:'hotel',photo:'https://res.klook.com/klook-hotel/image/upload/w_750%2Cc_fill%2Cq_85/meituan_p0/tdcoverseahoteldark/3c4df3ba0a3bc260e37360abb61cff584346006.jpg',note:'起点：473 Nathan Rd, Yau Ma Tei。酒店官方资料指向油麻地站 Exit C 一带。',tip:'走到油麻地 MTR 后，搭荃湾线前往中环，再转港岛线到上环。'},
+ {n:1,name:'香港港澳客运码头（上环）',lat:22.288093,lng:114.151767,photo:'https://blog.kakaocdn.net/dna/bQqPqv/btsFjJjfmHW/AAAAAAAAAAAAAAAAAAAAANu5oIU1GdigmYOvFuwtw_r6OuHMABK0Luu94lpXffla/img.webp?allow_ip=&allow_referer=&credential=yqZXFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1777561199&signature=WSb68C1eHsm%2FcJrVz6jBeejN3L0%3D',note:'信德中心内；上环站 Exit D 方向。',tip:'氹仔去程船班比外港少，先查当天 Taipa 船班。TurboJET 建议至少提前 30 分钟到登船口。'},
+ {n:2,name:'澳门氹仔客运码头',lat:22.163952,lng:113.576721,photo:'https://sp-ao.shortpixel.ai/client/q_glossy%2Cret_img/http%3A/new.palasiaconsult.com/wp-content/uploads/2021/02/0849.1D_Ferry-Terminal-Taipa2.jpg',note:'抵澳点。码头外有巴士、的士及酒店/博彩场所免费接驳。',tip:'第一次去：优先找威尼斯人 / 路氹方向免费发财车；如果现场路线不合适就短程打车。'},
+ {n:3,name:'威尼斯人',lat:22.147033,lng:113.559839,photo:'https://n.sinaimg.cn/sinakd2021123s/107/w1024h683/20210123/8628-khxeamw7670198.jpg',note:'路氹酒店综合体；室内、拍照都很适合第一次去。',tip:'建议逛 45–75 分钟，不用把所有商场走完。'},
+ {n:4,name:'巴黎人（埃菲尔铁塔）',lat:22.143661,lng:113.561958,photo:'https://img1.daumcdn.net/thumb/R1280x0.fjpg/?fname=http%3A%2F%2Ft1.daumcdn.net%2Fbrunch%2Fservice%2Fuser%2F7wcA%2Fimage%2Fyj-wlBsOwVmcIq8_ZiZbSH2TWq4.jpg',note:'与威尼斯人同属路氹核心区域，适合拍照。',tip:'不用专门排很久，拍外观 + 走一圈即可。'},
+ {n:5,name:'官也街 / 氹仔旧城区',lat:22.153535,lng:113.556999,photo:'https://3.bp.blogspot.com/_svVm7Mia0uk/TA1wauQpyLI/AAAAAAAAKjI/NIMZvpAAoMY/s1600/DSC_0320.JPG',note:'氹仔吃东西最方便的区域之一。',tip:'把这里当作第一轮「澳门小吃 sampling」：猪扒包、蛋挞、肉乾等，不用每家都吃。'},
+ {n:6,name:'大三巴牌坊',lat:22.197456,lng:113.540865,photo:'https://www.travellino.net/images/panoramio/1533/154376.jpg',note:'第一次澳门的必看地标。',tip:'建议从大三巴开始向下走，不要一到老城区就打车。'},
+ {n:7,name:'议事亭前地',lat:22.193533,lng:113.539759,photo:'https://www.top10todolist.com/uploads/1/4/5/0/14501210/2637729274-116884111f-b_1_orig.jpg',note:'历史城区核心广场。',tip:'大三巴 → 议事亭前地建议步行，沿途巷弄比单看广场更有意思。'},
+ {n:8,name:'新马路 / 义顺牛奶公司',lat:22.194646,lng:113.538156,photo:'https://img.bigfang.tw/2017/09/1504388113-22d71165329c83e617a059ba88936142.jpg',note:'适合下午茶；双皮奶、姜汁撞奶。',tip:'建议两个人分食，不要为了打卡一次吃太多。'},
+ {n:9,name:'澳门外港客运码头',lat:22.197093,lng:113.559122,photo:'https://images.mindtrip.ai/attractions/371a/4d3e/b31d/3a9a/8a6b/c614/a57a/5e97',note:'最终返港点。',tip:'建议预留 45–60 分钟回到码头，尤其是周末/假日。'}
+];
+
+const legs=[
+ {from:0,to:1,mode:'paid',label:'港铁：油麻地 → 中环 → 上环；上环站 Exit D 方向进入信德中心'},
+ {from:1,to:2,mode:'ferry',label:'渡轮：香港上环 → 澳门氹仔；船程约60分钟'},
+ {from:2,to:3,mode:'shuttle',label:'免费发财车 / 短程的士：氹仔码头 → 威尼斯人方向'},
+ {from:3,to:4,mode:'walk',label:'步行：威尼斯人 → 巴黎人；同一片路氹综合体区域'},
+ {from:4,to:5,mode:'paid',label:'步行或短程的士/巴士：巴黎人 → 官也街'},
+ {from:5,to:6,mode:'paid',label:'的士 / 公共巴士：氹仔 → 澳门半岛；第一次去建议的士省脑'},
+ {from:6,to:7,mode:'walk',label:'步行：大三巴 → 议事亭前地'},
+ {from:7,to:8,mode:'walk',label:'步行：议事亭前地 → 新马路 / 义顺'},
+ {from:8,to:9,mode:'shuttle',label:'发财车或的士：市区 → 澳门外港客运码头'}
+];
+
+const foods=[
+ {name:'大利來記',lat:22.1530,lng:113.5573,photo:'https://3.bp.blogspot.com/_svVm7Mia0uk/TA1wauQpyLI/AAAAAAAAKjI/NIMZvpAAoMY/s1600/DSC_0320.JPG',note:'候选：猪扒包。建议两人分一份。'},
+ {name:"Lord Stow's Bakery（官也街一带）",lat:22.1541,lng:113.5572,photo:'https://ak-d.tripcdn.com/images/1mi342224w8y3i3te70AB_R_600_400_R5_Q90.png?proc=source%2Ftrip',note:'候选：葡式蛋挞。也可以到现场再看哪家排队更合适。'},
+ {name:'玛嘉烈蛋挞',lat:22.191803,lng:113.541854,photo:'https://img.bigfang.tw/2017/09/1504397360-bac7161f6e5faef154a3b7d156f6738d.jpg',note:'候选：老城区下午茶。'},
+ {name:'恒友咖喱鱼蛋',lat:22.1930,lng:113.5405,photo:'https://3.bp.blogspot.com/_svVm7Mia0uk/TA1wauQpyLI/AAAAAAAAKjI/NIMZvpAAoMY/s1600/DSC_0320.JPG',note:'候选：经过时买一份小吃即可。'}
+];
+
+function icon(n,type){
+ if(type==='hotel') return L.divIcon({className:'',html:'<div class="hotel-badge">住</div>',iconSize:[31,31],iconAnchor:[15,15]});
+ return L.divIcon({className:'',html:`<div class="num-badge">${n}</div>`,iconSize:[31,31],iconAnchor:[15,15]});
+}
+function foodIcon(){return L.divIcon({className:'',html:'<div class="food-badge">吃</div>',iconSize:[28,28],iconAnchor:[14,14]});}
+
+const dash={ferry:'7,8',walk:'3,8',paid:null,shuttle:null};
+const weight={ferry:4,walk:3,paid:3.5,shuttle:4};
+legs.forEach(l=>{const a=stops[l.from],b=stops[l.to];L.polyline([[a.lat,a.lng],[b.lat,b.lng]],{color:C[l.mode],weight:weight[l.mode],dashArray:dash[l.mode],opacity:.85}).bindTooltip(l.label,{sticky:true,direction:'top'}).addTo(map);});
+
+function htmlPhoto(name,photo,note,tip){
+ return `<div class="photo-tooltip"><img src="${photo}" alt="${name}"><div class="tt-body"><div class="tt-title">${name}</div><div class="tt-note">${note}</div>${tip?`<div class="tt-tag">怎么走/怎么玩：${tip}</div>`:''}</div></div>`;
+}
+function popup(name,photo,note,tip,tag){
+ return `<img class="popup-img" src="${photo}" alt="${name}"><div class="popup-title">${name}</div><div class="popup-tip">${note}</div><div class="popup-tip" style="margin-top:5px"><b>建议：</b>${tip}</div>${tag?`<span class="tag" style="background:${C[tag]||C.attraction}">路线点</span>`:''}`;
+}
+
+stops.forEach(s=>{
+ const m=L.marker([s.lat,s.lng],{icon:icon(s.n,s.type)}).addTo(map);
+ m.bindTooltip(htmlPhoto(s.name,s.photo,s.note,s.tip),{className:'photo-tooltip',direction:'right',offset:[12,0],sticky:true,interactive:false});
+ m.bindPopup(popup(s.name,s.photo,s.note,s.tip,'attraction'),{maxWidth:370});
+});
+
+foods.forEach(f=>{
+ const m=L.marker([f.lat,f.lng],{icon:foodIcon()}).addTo(map);
+ m.bindTooltip(htmlPhoto(f.name,f.photo,f.note,'看到合适就吃，不用全部安排'),{className:'photo-tooltip',direction:'right',offset:[12,0],sticky:true});
+ m.bindPopup(popup('🍴 '+f.name,f.photo,f.note,'当作候选即可；出发前可再到小红书核对当天营业/排队。','food'),{maxWidth:370});
+});
+
+const legend=L.control({position:'bottomright'});
+legend.onAdd=function(){const d=L.DomUtil.create('div','legend');d.innerHTML=`<h4>地图图例</h4><div class="row"><span class="swatch" style="border-color:${C.ferry};border-top-style:dashed"></span>渡轮</div><div class="row"><span class="swatch" style="border-color:${C.shuttle}"></span>免费发财车</div><div class="row"><span class="swatch" style="border-color:${C.walk};border-top-style:dashed"></span>步行</div><div class="row"><span class="swatch" style="border-color:${C.paid}"></span>港铁 / 巴士 / 的士</div><div class="row"><span class="dot" style="background:${C.food}"></span>美食候选</div><div class="row"><span class="dot" style="background:${C.attraction}"></span>景点/路线</div>`;return d};legend.addTo(map);
+
+const all=stops.map(s=>[s.lat,s.lng]).concat(foods.map(f=>[f.lat,f.lng]));
+map.fitBounds(all,{padding:[70,70]});
+
+// mobile guide toggle
+const guide=document.getElementById('guide');
+document.getElementById('guideBtn').addEventListener('click',()=>{guide.style.display=guide.style.display==='block'?'none':'block';});
+
+// close guide when clicking map on mobile
+map.on('click',()=>{if(window.innerWidth<=700) guide.style.display='none';});
+</script>
+</body>
+</html>
